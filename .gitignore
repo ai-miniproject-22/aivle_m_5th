@@ -1,0 +1,12 @@
+.idea/
+.vscode/
+
+Frontend/node_modules/
+Frontend/dist/
+
+Backend/.gradle/
+Backend/build/
+Backend/out/
+Backend/*.iml
+
+*.log
