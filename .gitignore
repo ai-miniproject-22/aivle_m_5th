@@ -3,10 +3,12 @@
 
 Frontend/node_modules/
 Frontend/dist/
+Frontend/.env
+Frontend/.env.local
 
 Backend/.gradle/
 Backend/build/
 Backend/out/
-Backend/*.iml
+Backend/.env
 
 *.log

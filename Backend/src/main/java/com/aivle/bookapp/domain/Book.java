@@ -53,7 +53,7 @@ public class Book {
     @Column(name = "tag")
     private List<String> tags = new ArrayList<>();
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String coverImageUrl;
 
     private LocalDateTime createdAt;
