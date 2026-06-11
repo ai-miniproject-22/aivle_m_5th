@@ -13,21 +13,10 @@ public class BookappApplication {
 	@Bean
 	CommandLineRunner init(BookRepository bookRepository) {
 		return args -> {
-			// save, findById 예제 코드
-			/*Book book = new Book();
-			book.setTitle("Spring boot 입문");
-			book.setAuthor("임한울");
-
-			Book saved = bookRepository.save(book);
-
-			System.out.println("책 id: " + saved.getId());
-
-			Book book2 = bookRepository.findById(1L).orElseThrow(() -> new RuntimeException("책이 없음"));
-
-			System.out.println("-------------------");
-			System.out.println("book2의 id: " + book2.getId());
-			System.out.println("book2의 title: " + book2.getTitle());
-			System.out.println("book2의 author: " + book2.getAuthor());*/
+			// H2/Supabase 모두에서 중복 샘플 데이터가 쌓이지 않도록 최초 1회만 저장
+			if (bookRepository.count() > 0) {
+				return;
+			}
 
 			Book b1 = new Book();
 			b1.setTitle("자바의 정석");

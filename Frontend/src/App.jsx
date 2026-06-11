@@ -1,12 +1,34 @@
-import { useState } from 'react';
-import { Box } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import BookListPage from './pages/BookListPage';
 import BookDetailPage from './pages/BookDetailPage';
 import BookFormPage from './pages/BookFormPage';
+import AuthPanel from './components/AuthPanel';
+import { supabase } from './SupabaseClient';
 
 function App() {
   const [page, setPage] = useState('list'); // 'list' | 'detail' | 'form'
   const [selectedId, setSelectedId] = useState(null); // 어떤 책을 볼지/수정할지 ID 저장
+  const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    // 새로고침해도 로그인 유지
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setIsAuthLoading(false);
+    });
+
+    // 로그인 상태 바뀌면 화면 갱신
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsAuthLoading(false);
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   const goList = () => {
     setPage('list');
@@ -23,8 +45,46 @@ function App() {
     setPage('form');
   };
 
+  const handleLogout = async () => {
+    // 로그아웃 후 목록 첫 화면으로
+    await supabase.auth.signOut();
+    setUser(null);
+    goList();
+  };
+
+  if (isAuthLoading) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography>로그인 상태 확인 중...</Typography>
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', bgcolor: 'grey.50', p: 3 }}>
+        <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', p: 4, border: '1px solid', borderColor: 'grey.200', borderRadius: 1 }}>
+          <AuthPanel onAuthChange={setUser} />
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ textAlign: 'left', width: '100%' }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ alignItems: 'center', justifyContent: 'flex-end', px: 3, py: 1, bgcolor: 'grey.100' }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          {user.email}
+        </Typography>
+        <Button size="small" variant="outlined" onClick={handleLogout}>
+          로그아웃
+        </Button>
+      </Stack>
+
       {page === 'list' && (
         <BookListPage
           onAddClick={() => goForm()}
