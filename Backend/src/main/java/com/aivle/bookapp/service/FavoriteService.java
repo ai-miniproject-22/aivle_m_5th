@@ -26,9 +26,11 @@ public class FavoriteService {
      */
     @Transactional(readOnly = true)
     public List<Long> getFavoriteBookIds(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-        return favoriteRepository.findBookIdsByUser(user);
+        validateUserId(userId);
+
+        return userRepository.findById(userId)
+                .map(favoriteRepository::findBookIdsByUser)
+                .orElse(List.of());
     }
 
     /**
@@ -36,20 +38,24 @@ public class FavoriteService {
      */
     @Transactional(readOnly = true)
     public List<Book> getFavoriteBooks(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        validateUserId(userId);
 
-        List<Favorite> favorites = favoriteRepository.findByUser(user);
-        return favorites.stream().map(Favorite::getBook).toList();
+        return userRepository.findById(userId)
+                .map(user -> favoriteRepository.findByUser(user)
+                        .stream()
+                        .map(Favorite::getBook)
+                        .toList())
+                .orElse(List.of());
     }
 
     /**
      * [기능 3] 즐겨찾기 추가 (POST)
      */
     @Transactional
-    public void addFavorite(String userId, Long bookId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    public void addFavorite(String userId, String email, Long bookId) {
+        validateUserId(userId);
+
+        User user = findOrCreateUser(userId, email);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
 
@@ -64,14 +70,33 @@ public class FavoriteService {
      */
     @Transactional
     public void removeFavorite(String userId, Long bookId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        validateUserId(userId);
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return;
+        }
+
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
 
-        Favorite favorite = favoriteRepository.findByUserAndBook(user, book)
-                .orElseThrow(() -> new IllegalArgumentException("즐겨찾기 내역을 찾을 수 없습니다."));
+        favoriteRepository.findByUserAndBook(user, book)
+                .ifPresent(favoriteRepository::delete);
+    }
 
-        favoriteRepository.delete(favorite);
+    private User findOrCreateUser(String userId, String email) {
+        return userRepository.findById(userId)
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setId(userId);
+                    user.setEmail(email);
+                    return userRepository.save(user);
+                });
+    }
+
+    private void validateUserId(String userId) {
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("userId가 누락되었습니다.");
+        }
     }
 }

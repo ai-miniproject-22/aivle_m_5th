@@ -34,7 +34,7 @@ function App() {
       if (wasFavorite) {
         await removeFavorite(bookId, user.id);
       } else {
-        await addFavorite(bookId, user.id);
+        await addFavorite(bookId, user.id, user.email);
       }
     } catch (error) {
       console.error('즐겨찾기 변경 실패:', error);

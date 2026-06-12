@@ -30,11 +30,11 @@ export const getFavoriteBooks = async (userId) => {
 };
 
 // 즐겨찾기 추가
-export const addFavorite = async (bookId, userId) => {
+export const addFavorite = async (bookId, userId, email) => {
   const response = await fetch(`${API_BASE_URL}/books/${bookId}/favorites`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
+    body: JSON.stringify({ userId, email }),
   });
 
   await checkResponse(response, '즐겨찾기 추가 실패');

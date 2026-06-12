@@ -42,12 +42,15 @@ public class FavoriteController {
             @PathVariable("bookId") Long bookId,
             @RequestBody Map<String, Object> body) {
 
-        String userId = String.valueOf(body.get("userId"));
-        if (userId == null) {
+        Object userIdValue = body.get("userId");
+        String userId = userIdValue == null ? null : String.valueOf(userIdValue);
+        String email = body.get("email") == null ? null : String.valueOf(body.get("email"));
+
+        if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("userId가 누락되었습니다.");
         }
 
-        favoriteService.addFavorite(userId, bookId);
+        favoriteService.addFavorite(userId, email, bookId);
         return ResponseEntity.status(HttpStatus.CREATED).build(); // 201 Created
     }
 
