@@ -24,6 +24,7 @@ function BookFormPage({
   onCancel,
   onSubmit,
   onLogoClick,
+  onFavoritesClick,
 }) {
   const isEditing = !!bookId;
 
@@ -117,7 +118,7 @@ function BookFormPage({
 
   return (
     <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-      <Header onAddClick={onAddClick} onLogoClick={onLogoClick} />
+      <Header onAddClick={onAddClick} onLogoClick={onLogoClick} onFavoritesClick={onFavoritesClick} />
 
       <Container maxWidth="sm" sx={{ py: 4 }}>
         {/* 목록으로 돌아가기 */}

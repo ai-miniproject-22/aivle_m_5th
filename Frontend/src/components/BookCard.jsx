@@ -8,12 +8,15 @@ import {
   Box,
 } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
+import IconButton from '@mui/material/IconButton';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
-function BookCard({ book, onClick }) {
+function BookCard({ book, onClick, isFavorite = false, onToggleFavorite }) {
   const { title, author, genres = [], coverImageUrl } = book;
 
   return (
-    <Card elevation={1} sx={{ height: '100%' }}>
+    <Card elevation={1} sx={{ height: '100%', position: 'relative' }}>
       <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
         <Box
           sx={{
@@ -62,6 +65,38 @@ function BookCard({ book, onClick }) {
           </Stack>
         </CardContent>
       </CardActionArea>
+
+      {/* 카드 이동과 하트 클릭 분리 */}
+      <IconButton
+        size="small"
+        aria-label={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleFavorite?.(book);
+        }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          zIndex: 10,
+          bgcolor: 'rgba(255, 255, 255, 0.9)',
+          boxShadow: 1,
+          '&:hover': {
+            bgcolor: 'rgba(255, 255, 255, 1)',
+          },
+        }}
+      >
+        {isFavorite ? (
+          <FavoriteIcon color="error" fontSize="small" />
+        ) : (
+          <FavoriteBorderIcon fontSize="small" />
+        )}
+      </IconButton>
     </Card>
   );
 }

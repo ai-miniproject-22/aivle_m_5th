@@ -21,7 +21,18 @@ import BookCard from '../components/BookCard';
 import { getBookById, getBooks, deleteBook } from '../bookService';
 import { saveBookPreference } from '../preferenceService';
 
-function BookDetailPage({ bookId, onAddClick, onBackClick, onEditClick, onDeleteClick, onBookClick, onLogoClick }) {
+function BookDetailPage({
+  bookId,
+  onAddClick,
+  onBackClick,
+  onEditClick,
+  onDeleteClick,
+  onBookClick,
+  onLogoClick,
+  onFavoritesClick,
+  favoriteIds = [],
+  onToggleFavorite,
+}) {
   const [book, setBook] = useState(null);
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [showAiPanel, setShowAiPanel] = useState(false);
@@ -92,7 +103,7 @@ function BookDetailPage({ bookId, onAddClick, onBackClick, onEditClick, onDelete
 
   return (
     <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-      <Header onAddClick={onAddClick} onLogoClick={onLogoClick} />
+      <Header onAddClick={onAddClick} onLogoClick={onLogoClick} onFavoritesClick={onFavoritesClick} />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Link
@@ -185,7 +196,12 @@ function BookDetailPage({ bookId, onAddClick, onBackClick, onEditClick, onDelete
             <Grid container spacing={3}>
               {recommendedBooks.map((rec) => (
                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={rec.id}>
-                  <BookCard book={rec} onClick={() => onBookClick?.(rec.id)} />
+                  <BookCard
+                    book={rec}
+                    onClick={() => onBookClick?.(rec.id)}
+                    isFavorite={favoriteIds.includes(Number(rec.id))}
+                    onToggleFavorite={onToggleFavorite}
+                  />
                 </Grid>
               ))}
             </Grid>

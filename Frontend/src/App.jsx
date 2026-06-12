@@ -5,12 +5,35 @@ import BookDetailPage from './pages/BookDetailPage';
 import BookFormPage from './pages/BookFormPage';
 import AuthPanel from './components/AuthPanel';
 import { supabase } from './SupabaseClient';
+import FavoritePage from './pages/FavoritePage';
 
 function App() {
   const [page, setPage] = useState('list'); // 'list' | 'detail' | 'form'
   const [selectedId, setSelectedId] = useState(null); // 어떤 책을 볼지/수정할지 ID 저장
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  // 즐겨찾기 임시 상태
+  const [favoriteIds, setFavoriteIds] = useState([1, 3]);
+
+  const handleToggleFavorite = (book) => {
+    // 하트 누르면 추가/해제
+    setFavoriteIds((prev) => {
+      const bookId = Number(book.id);
+
+      if (prev.includes(bookId)) {
+        return prev.filter((id) => id !== bookId);
+      }
+
+      return [...prev, bookId];
+    });
+  };
+
+  const goFavorites = () => {
+    // 즐겨찾기 모아보기로 이동
+    setPage('favorites');
+    setSelectedId(null);
+  };
 
   useEffect(() => {
     // 새로고침해도 로그인 유지
@@ -87,9 +110,23 @@ function App() {
 
       {page === 'list' && (
         <BookListPage
+          favoriteIds={favoriteIds}
+          onToggleFavorite={handleToggleFavorite}
           onAddClick={() => goForm()}
           onBookClick={(id) => goDetail(id)}
           onLogoClick={goList}
+          onFavoritesClick={goFavorites}
+        />
+      )}
+
+      {page === 'favorites' && (
+        <FavoritePage
+          favoriteIds={favoriteIds}
+          onToggleFavorite={handleToggleFavorite}
+          onAddClick={() => goForm()}
+          onBookClick={(id) => goDetail(id)}
+          onLogoClick={goList}
+          onFavoritesClick={goFavorites}
         />
       )}
 
@@ -102,6 +139,9 @@ function App() {
           onDeleteClick={goList}
           onBookClick={(id) => goDetail(id)} // 추천 도서 클릭 시 해당 도서로 이동
           onLogoClick={goList}
+          onFavoritesClick={goFavorites}
+          favoriteIds={favoriteIds}
+          onToggleFavorite={handleToggleFavorite}
         />
       )}
 
@@ -113,6 +153,7 @@ function App() {
           onCancel={selectedId ? () => goDetail(selectedId) : goList}
           onSubmit={goList}
           onLogoClick={goList}
+          onFavoritesClick={goFavorites}
         />
       )}
     </Box>
