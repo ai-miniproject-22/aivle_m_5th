@@ -20,7 +20,7 @@ public class FavoriteController {
      * 1. 즐겨찾기 ID 목록 조회
      */
     @GetMapping("/favorites/book-ids")
-    public ResponseEntity<List<Long>> getFavoriteBookIds(@RequestParam("userId") Long userId) {
+    public ResponseEntity<List<Long>> getFavoriteBookIds(@RequestParam("userId") String userId) {
         List<Long> bookIds = favoriteService.getFavoriteBookIds(userId);
         return ResponseEntity.ok(bookIds);
     }
@@ -29,7 +29,7 @@ public class FavoriteController {
      * 2. 즐겨찾기 도서 목록 조회
      */
     @GetMapping("/favorites")
-    public ResponseEntity<List<Book>> getFavoriteList(@RequestParam("userId") Long userId) {
+    public ResponseEntity<List<Book>> getFavoriteList(@RequestParam("userId") String userId) {
         List<Book> favoriteBooks = favoriteService.getFavoriteBooks(userId);
         return ResponseEntity.ok(favoriteBooks);
     }
@@ -40,9 +40,9 @@ public class FavoriteController {
     @PostMapping("/books/{bookId}/favorites")
     public ResponseEntity<Void> addFavorite(
             @PathVariable("bookId") Long bookId,
-            @RequestBody Map<String, Long> body) {
+            @RequestBody Map<String, Object> body) {
 
-        Long userId = body.get("userId");
+        String userId = String.valueOf(body.get("userId"));
         if (userId == null) {
             throw new IllegalArgumentException("userId가 누락되었습니다.");
         }
@@ -57,7 +57,7 @@ public class FavoriteController {
     @DeleteMapping("/books/{bookId}/favorites")
     public ResponseEntity<Void> removeFavorite(
             @PathVariable("bookId") Long bookId,
-            @RequestParam("userId") Long userId) {
+            @RequestParam("userId") String userId) {
 
         favoriteService.removeFavorite(userId, bookId);
         return ResponseEntity.noContent().build(); // 204 No Content

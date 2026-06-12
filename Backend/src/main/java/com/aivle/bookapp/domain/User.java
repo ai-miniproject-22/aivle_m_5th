@@ -8,10 +8,10 @@ import lombok.Setter;
 @Getter @Setter
 @Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
+    @Column(name = "user_id", length = 100)
+    private String id;
     private String username;
     private String email;
 }

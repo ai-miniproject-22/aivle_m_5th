@@ -25,7 +25,7 @@ public class FavoriteService {
      *  [기능 1] 즐겨찾기 ID 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<Long> getFavoriteBookIds(Long userId) {
+    public List<Long> getFavoriteBookIds(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         return favoriteRepository.findBookIdsByUser(user);
@@ -35,7 +35,7 @@ public class FavoriteService {
      * [기능 2] 즐겨찾기 도서 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<Book> getFavoriteBooks(Long userId) {
+    public List<Book> getFavoriteBooks(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -47,7 +47,7 @@ public class FavoriteService {
      * [기능 3] 즐겨찾기 추가 (POST)
      */
     @Transactional
-    public void addFavorite(Long userId, Long bookId) {
+    public void addFavorite(String userId, Long bookId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         Book book = bookRepository.findById(bookId)
@@ -63,7 +63,7 @@ public class FavoriteService {
      * [기능 4] 즐겨찾기 삭제 (DELETE)
      */
     @Transactional
-    public void removeFavorite(Long userId, Long bookId) {
+    public void removeFavorite(String userId, Long bookId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         Book book = bookRepository.findById(bookId)

@@ -1,9 +1,7 @@
 package com.aivle.bookapp;
 
 import com.aivle.bookapp.domain.Book;
-import com.aivle.bookapp.domain.User;
 import com.aivle.bookapp.repository.BookRepository;
-import com.aivle.bookapp.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,16 +11,9 @@ import org.springframework.context.annotation.Bean;
 public class BookappApplication {
 
 	@Bean
-	CommandLineRunner init(BookRepository bookRepository, UserRepository userRepository) {
+	CommandLineRunner init(BookRepository bookRepository) {
 		return args -> {
 			// H2/Supabase 모두에서 중복 샘플 데이터가 쌓이지 않도록 최초 1회만 저장
-			// 1. 즐겨찾기 테스트를 위한 1번 유저 하드코딩 생성
-			if (userRepository.count() == 0) { // existsById 대신 개수로 체크
-				User testUser = new User();
-				testUser.setUsername("testUser");
-				testUser.setEmail("test@aivle.com");
-				userRepository.save(testUser);
-			}
 
 			if (bookRepository.count() > 0) {
 				return;
