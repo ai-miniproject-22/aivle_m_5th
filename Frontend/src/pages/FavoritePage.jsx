@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Box, CircularProgress, Container, Grid, Typography } from '@mui/material';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
-import { getBooks } from '../bookService';
+import { getFavoriteBooks } from '../favoriteService';
 
 function FavoritePage({
+  user,
   favoriteIds = [],
   onAddClick,
   onBookClick,
@@ -17,12 +18,17 @@ function FavoritePage({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 백엔드 연동 전까지 전체 책에서 골라보기
-    const fetchBooks = async () => {
+    const fetchFavoriteBooks = async () => {
+      if (!user?.id) {
+        setBooks([]);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError(null);
-        const data = await getBooks();
+        const data = await getFavoriteBooks(user.id);
         setBooks(data);
       } catch (err) {
         console.error('즐겨찾기 도서 불러오기 실패:', err);
@@ -32,10 +38,10 @@ function FavoritePage({
       }
     };
 
-    fetchBooks();
-  }, []);
+    fetchFavoriteBooks();
+  }, [user]);
 
-  // 즐겨찾기 ID에 맞는 책만 표시
+  // 하트 해제 후 바로 목록에서 빼기
   const favoriteBooks = books.filter((book) =>
     favoriteIds.includes(Number(book.id))
   );

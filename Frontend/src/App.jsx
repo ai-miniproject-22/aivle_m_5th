@@ -6,6 +6,7 @@ import BookFormPage from './pages/BookFormPage';
 import AuthPanel from './components/AuthPanel';
 import { supabase } from './SupabaseClient';
 import FavoritePage from './pages/FavoritePage';
+import { addFavorite, getFavoriteBookIds, removeFavorite } from './favoriteService';
 
 function App() {
   const [page, setPage] = useState('list'); // 'list' | 'detail' | 'form'
@@ -13,20 +14,35 @@ function App() {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // 즐겨찾기 임시 상태
-  const [favoriteIds, setFavoriteIds] = useState([1, 3]);
+  const [favoriteIds, setFavoriteIds] = useState([]);
 
-  const handleToggleFavorite = (book) => {
-    // 하트 누르면 추가/해제
-    setFavoriteIds((prev) => {
-      const bookId = Number(book.id);
+  const handleToggleFavorite = async (book) => {
+    if (!user?.id) {
+      alert('로그인 후 이용해주세요.');
+      return;
+    }
 
-      if (prev.includes(bookId)) {
-        return prev.filter((id) => id !== bookId);
+    const bookId = Number(book.id);
+    const wasFavorite = favoriteIds.includes(bookId);
+
+    // 먼저 화면에 반영하고 실패하면 되돌리기
+    setFavoriteIds((prev) => (
+      wasFavorite ? prev.filter((id) => id !== bookId) : [...prev, bookId]
+    ));
+
+    try {
+      if (wasFavorite) {
+        await removeFavorite(bookId, user.id);
+      } else {
+        await addFavorite(bookId, user.id);
       }
-
-      return [...prev, bookId];
-    });
+    } catch (error) {
+      console.error('즐겨찾기 변경 실패:', error);
+      setFavoriteIds((prev) => (
+        wasFavorite ? [...prev, bookId] : prev.filter((id) => id !== bookId)
+      ));
+      alert('즐겨찾기 변경에 실패했습니다.');
+    }
   };
 
   const goFavorites = () => {
@@ -52,6 +68,25 @@ function App() {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const fetchFavoriteIds = async () => {
+      if (!user?.id) {
+        setFavoriteIds([]);
+        return;
+      }
+
+      try {
+        const ids = await getFavoriteBookIds(user.id);
+        setFavoriteIds(ids.map(Number));
+      } catch (error) {
+        console.error('즐겨찾기 ID 조회 실패:', error);
+        setFavoriteIds([]);
+      }
+    };
+
+    fetchFavoriteIds();
+  }, [user]);
 
   const goList = () => {
     setPage('list');
@@ -121,6 +156,7 @@ function App() {
 
       {page === 'favorites' && (
         <FavoritePage
+          user={user}
           favoriteIds={favoriteIds}
           onToggleFavorite={handleToggleFavorite}
           onAddClick={() => goForm()}
