@@ -1,40 +1,62 @@
-# AI Mini Project 5th - Book App
+# AI 미니프로젝트 5차 - 도서 관리 서비스
 
-React 프론트엔드와 Spring Boot 백엔드로 구성한 도서 관리 및 AI 표지 생성 시스템입니다.
+## 개요
 
-도서 정보를 등록, 조회, 수정, 삭제할 수 있으며, AI를 활용해 도서 표지를 생성하고 해당 표지 URL과 태그를 저장할 수 있습니다.
+도서 정보를 등록, 조회, 수정, 삭제할 수 있는 웹 서비스입니다.
 
----
+기존 도서 관리 기능에 Supabase 기반 로그인, AI 표지 생성, 즐겨찾기 기능을 연결하여 사용자별 도서 관리 경험을 확장했습니다.
 
-## Project Structure
+주요 목표는 React 프론트엔드와 Spring Boot 백엔드를 API로 연동하고, 예외 처리와 배포 환경까지 포함한 전체 흐름을 구현하는 것입니다.
+
+## 기술스택
+
+| 구분 | 기술 |
+|---|---|
+| Frontend | React, Vite, MUI, Supabase JS |
+| Backend | Java 17, Spring Boot, Spring Data JPA |
+| Database | Supabase PostgreSQL |
+| Auth | Supabase Auth |
+| AI | OpenAI Image API |
+| Deploy | Vercel, Render |
+| Tool | GitHub, Postman |
+
+![기술스택](docs/images/tech-stack.png)
+
+## 프로젝트 구조
 
 ```text
-Frontend/  React + Vite client
-Backend/   Spring Boot API server
+mini-project/
+├── Backend/    Spring Boot API 서버
+├── Frontend/   React + Vite 클라이언트
+└── README.md
 ```
 
----
+## 실행방법
 
-## Backend
+### Backend 실행
 
-IntelliJ IDEA에서 `Backend` 폴더를 열고 `BookappApplication`을 실행합니다.
+```bash
+cd Backend
+./gradlew bootRun
+```
+
+Backend 기본 주소:
 
 ```text
 http://localhost:8080
 ```
 
-H2 Console:
+Backend 환경변수 예시:
 
-```text
-http://localhost:8080/h2-console
-JDBC URL: jdbc:h2:mem:bookdb
-User Name: sa
-Password: 1234
+```env
+SPRING_PROFILES_ACTIVE=supabase
+SUPABASE_DB_URL=jdbc:postgresql://...
+SUPABASE_DB_USER=...
+SUPABASE_DB_PASSWORD=...
+APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
----
-
-## Frontend
+### Frontend 실행
 
 ```bash
 cd Frontend
@@ -42,504 +64,267 @@ npm install
 npm run dev
 ```
 
-Frontend runs on:
+Frontend 기본 주소:
 
 ```text
 http://localhost:5173
 ```
 
----
+Frontend 환경변수 예시:
 
-## Main API
-
-```text
-GET    /books
-GET    /books/{id}
-POST   /books
-PATCH  /books/{id}
-DELETE /books/{id}
-PATCH  /books/{id}/cover
+```env
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_API_BASE_URL=http://localhost:8080/books
 ```
 
----
+## API 명세
 
-# Mission Progress
+### 도서 API
 
-## Day 1 - 기획 및 설계
+| 기능 | Method | URL | 설명 |
+|---|---|---|---|
+| 도서 전체 조회 | GET | `/books` | 등록된 도서 목록 조회 |
+| 도서 상세 조회 | GET | `/books/{id}` | 특정 도서 상세 조회 |
+| 도서 등록 | POST | `/books` | 새 도서 등록 |
+| 도서 수정 | PATCH | `/books/{id}` | 도서 정보 수정 |
+| 도서 삭제 | DELETE | `/books/{id}` | 도서 삭제 |
+| 도서 수 조회 | GET | `/books/count` | 전체 도서 개수 조회 |
+| 제목 검색 | GET | `/books/search/title?title={title}` | 제목 기준 검색 |
+| 저자 검색 | GET | `/books/search/author?author={author}` | 저자 기준 검색 |
+| 상세 검색 | GET | `/books/search/detail` | 조건 기반 상세 검색 |
+| 페이지 조회 | GET | `/books/page` | 페이지 단위 도서 조회 |
 
-### Frontend 분석
+도서 등록 요청 예시:
 
-기존 React 기반 도서 관리 프로젝트를 분석하였다.
+```json
+{
+  "title": "자바의 정석",
+  "author": "남궁성",
+  "publisher": "도우출판",
+  "publishDate": "2024-01-01",
+  "genres": ["프로그래밍"],
+  "description": "자바 기본서를 소개합니다.",
+  "content": "도서 상세 내용",
+  "tags": ["Java", "Backend"]
+}
+```
 
-- db.json 데이터 구조 분석
-- fetch 기반 API 호출 패턴 분석
-- 도서 목록 조회 기능 확인
-- 도서 상세 조회 기능 확인
-- 도서 등록, 수정, 삭제 흐름 확인
-- AI 표지 생성 및 저장 흐름 확인
+### AI 표지 API
 
----
+| 기능 | Method | URL | 설명 |
+|---|---|---|---|
+| 표지 이미지 저장 | PATCH | `/books/{id}/cover` | AI로 생성한 표지 Data URL 저장 |
 
-### ERD 설계
+요청 예시:
 
-Book Entity를 기준으로 데이터 구조를 설계하였다.
+```json
+{
+  "coverImageUrl": "data:image/png;base64,..."
+}
+```
+
+### 즐겨찾기 API
+
+| 기능 | Method | URL | 설명 |
+|---|---|---|---|
+| 즐겨찾기 ID 목록 조회 | GET | `/favorites/book-ids?userId={userId}` | 하트 표시용 도서 ID 목록 조회 |
+| 즐겨찾기 도서 목록 조회 | GET | `/favorites?userId={userId}` | 즐겨찾기 모아보기 페이지용 |
+| 즐겨찾기 추가 | POST | `/books/{bookId}/favorites` | 특정 도서를 즐겨찾기에 추가 |
+| 즐겨찾기 삭제 | DELETE | `/books/{bookId}/favorites?userId={userId}` | 특정 도서 즐겨찾기 해제 |
+
+즐겨찾기 추가 요청 예시:
+
+```json
+{
+  "userId": "Supabase Auth user.id"
+}
+```
+
+## R&R
+
+| 담당 | 역할 |
+|---|---|
+| Backend | 도서 CRUD API, 검색 API, 즐겨찾기 API, DB 연동 |
+| Frontend | 도서 목록/상세/등록 화면, 로그인 UI, 즐겨찾기 UI |
+| AI 연동 | OpenAI 이미지 생성 호출, 생성 이미지 Data URL 변환 |
+| 통합/예외처리 | Frontend-Backend API 연결, CORS 설정, 검증 실패/404 처리, 배포 환경변수 정리 |
+| 배포 | Frontend Vercel 배포, Backend Render 배포, Supabase DB/Auth 연결 |
+
+## 주요 구현 결과
+
+### 1. 도서 관리 기능
+
+- 도서 전체 조회, 상세 조회, 등록, 수정, 삭제 기능을 구현했습니다.
+- React 화면에서 Spring Boot API를 호출하도록 연결했습니다.
+- 도서 제목, 저자, 출판사, 장르, 태그, 설명, 본문, 표지 URL을 관리할 수 있습니다.
+
+![도서 목록 화면](docs/images/book-list.png)
+
+### 2. AI 표지 생성 및 저장
+
+- Frontend에서 OpenAI Image API를 호출해 도서 표지를 생성합니다.
+- 응답받은 이미지를 Data URL 형식으로 변환합니다.
+- 변환된 표지 이미지를 Backend의 `/books/{id}/cover` API로 저장합니다.
+- 저장된 표지는 도서 상세 화면에서 확인할 수 있습니다.
+
+### 3. Supabase 로그인
+
+- Supabase Auth를 사용해 회원가입과 로그인을 구현했습니다.
+- 로그인하지 않은 사용자는 인증 화면을 먼저 보게 됩니다.
+- 로그인 성공 후 도서 목록, 상세, 즐겨찾기 기능을 이용할 수 있습니다.
+
+![로그인 화면](docs/images/auth-screen.png)
+
+### 4. 사용자별 즐겨찾기
+
+- 책 카드와 상세 화면에 하트 버튼을 추가했습니다.
+- 로그인한 사용자의 `user.id`를 기준으로 즐겨찾기를 저장합니다.
+- 즐겨찾기한 도서는 모아보기 화면에서 따로 확인할 수 있습니다.
+
+![즐겨찾기 화면](docs/images/favorites-page.png)
+
+### 5. 배포 구성
+
+- Frontend는 Vercel에 배포할 수 있도록 구성했습니다.
+- Backend는 Render에 배포할 수 있도록 구성했습니다.
+- Supabase PostgreSQL을 운영 DB로 사용합니다.
+- 배포 환경에서는 API 주소, DB 접속 정보, CORS 허용 주소를 환경변수로 관리합니다.
+
+## ERD
+
+현재 DB 구조는 Supabase PostgreSQL 기준입니다.
+
+![Supabase ERD](docs/images/supabase-schema-erd.png)
 
 ```text
-Book
-- id
+book
+- id PK
 - title
 - author
 - publisher
-- publishDate
-- genres
+- publish_date
 - description
 - content
-- tags
-- coverImageUrl
-- createdAt
-- updatedAt
+- cover_image_url
+- created_at
+- updated_at
+
+book_genres
+- book_id FK
+- genre
+
+book_tags
+- book_id FK
+- tag
+
+users
+- user_id PK
+- email
+- username
+
+favorite
+- id PK
+- user_id FK
+- book_id FK
 ```
 
----
+`users.user_id`는 Supabase Auth에서 발급되는 `user.id` 문자열 UUID를 기준으로 저장합니다.
 
-### API 설계
+비밀번호는 프로젝트 DB에 직접 저장하지 않고, Supabase Auth에서 관리합니다.
 
-Frontend 호출 패턴에 맞추어 API를 설계하였다.
+## 트러블슈팅
+
+### 1. Frontend에서 Backend API 호출 실패
+
+증상:
 
 ```text
-GET    /books
-GET    /books/{id}
-POST   /books
-PATCH  /books/{id}
-DELETE /books/{id}
-PATCH  /books/{id}/cover
+Failed to fetch
+ERR_CONNECTION_REFUSED
 ```
 
----
+원인:
 
-### 역할 분담
+Backend 서버가 실행되지 않았거나, `VITE_API_BASE_URL` 값이 실제 Backend 주소와 다릅니다.
 
-- Domain 계층 구현
-- Repository 계층 구현
-- Service 계층 구현
-- Controller 계층 구현
-- Frontend 연동 및 통합 테스트
-- README 및 발표 자료 정리
+해결:
 
----
+Backend 실행 여부를 확인하고 Frontend `.env` 값을 수정합니다.
 
-## Day 2 - CRUD 구현 및 Frontend 연동
+```env
+VITE_API_BASE_URL=http://localhost:8080/books
+```
 
-### Backend 계층 구현
+### 2. CORS 오류
 
-Spring Boot 기반으로 다음 계층을 구현하였다.
+증상:
+
+브라우저에서 API 호출이 차단됩니다.
+
+원인:
+
+Backend에서 Frontend 주소를 허용하지 않았습니다.
+
+해결:
+
+Backend 환경변수에 Frontend 주소를 추가합니다.
+
+```env
+APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
+
+### 3. Supabase 로그인 후 즐겨찾기 실패
+
+증상:
+
+즐겨찾기 API 호출 시 사용자를 찾지 못합니다.
+
+원인:
+
+Frontend는 Supabase Auth의 `user.id`를 보내고, Backend는 `users` 테이블의 `user_id`와 매칭합니다.
+
+해결:
+
+`users.user_id`는 Supabase Auth의 `user.id` 문자열 UUID 기준으로 저장합니다.
+
+### 4. Render 배포 시 Java 실행 실패
+
+증상:
 
 ```text
-Domain
-Repository
-Service
-Controller
-Exception
-Config
+JAVA_HOME is not set
 ```
 
----
+원인:
 
-### Domain
+Render가 Monorepo 구조를 Node 프로젝트로 잘못 감지했습니다.
 
-`Book` Entity를 생성하였다.
+해결:
 
-```java
-@Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class Book {
-    private Long id;
-    private String title;
-    private String author;
-    private String publisher;
-    private LocalDate publishDate;
-    private List<String> genres;
-    private String description;
-    private String content;
-    private List<String> tags;
-    private String coverImageUrl;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-}
-```
+Backend 배포용 Dockerfile을 사용하여 Java 17 환경에서 Spring Boot 애플리케이션을 실행하도록 구성했습니다.
 
----
+### 5. Supabase DB 연결 실패
 
-### Repository
+증상:
 
-`JpaRepository`를 상속하여 기본 CRUD 기능을 사용할 수 있도록 구현하였다.
+Backend 시작 시 DB 연결 오류가 발생합니다.
 
-```java
-public interface BookRepository extends JpaRepository<Book, Long> {
-}
-```
+원인:
 
----
+DB URL, 사용자명, 비밀번호, Pooler 설정이 잘못되었거나 환경변수가 누락되었습니다.
 
-### Service
+해결:
 
-도서 조회, 등록, 수정, 삭제 기능을 구현하였다.
+Render 환경변수에 Supabase DB 접속 정보를 등록합니다. 비밀번호는 GitHub에 올리지 않고 배포 환경변수로만 관리합니다.
 
-주요 메서드:
+## 참고
 
-```text
-findAll()
-findById()
-create()
-update()
-deleteBook()
-updateCover()
-```
+README에 사용한 이미지는 `docs/images` 폴더에 정리했습니다.
 
----
-
-### Controller
-
-Frontend에서 호출할 REST API를 구현하였다.
-
-```text
-GET    /books
-GET    /books/{id}
-POST   /books
-PATCH  /books/{id}
-DELETE /books/{id}
-PATCH  /books/{id}/cover
-```
-
----
-
-### Frontend 연동
-
-React의 API 호출 URL을 Spring Boot 서버로 변경하였다.
-
-```javascript
-const BASE_URL = 'http://localhost:8080/books';
-```
-
----
-
-### 통합 테스트 결과
-
-- 전체 조회 성공
-- 상세 조회 성공
-- 도서 등록 성공
-- 도서 수정 성공
-- 도서 삭제 성공
-- React 화면 연동 성공
-- H2 Database 저장 확인
-
----
-
-## Day 3 - 예외 처리 및 Validation
-
-### 사용자 정의 예외 처리
-
-존재하지 않는 도서를 조회할 경우 `BookNotFoundException`이 발생하도록 구현하였다.
-
-```java
-public class BookNotFoundException extends RuntimeException {
-
-    public BookNotFoundException(Long id) {
-        super("Book not found: id=" + id);
-    }
-}
-```
-
----
-
-### Service 예외 처리
-
-상세 조회 시 존재하지 않는 ID가 들어오면 예외를 발생시킨다.
-
-```java
-@Transactional(readOnly = true)
-public Book findById(Long id) {
-    return bookRepository.findById(id)
-            .orElseThrow(() -> new BookNotFoundException(id));
-}
-```
-
----
-
-### Transaction 적용
-
-조회 메서드에는 읽기 전용 트랜잭션을 적용하였다.
-
-```java
-@Transactional(readOnly = true)
-```
-
-등록, 수정, 삭제 메서드에는 일반 트랜잭션을 적용하였다.
-
-```java
-@Transactional
-```
-
----
-
-### Validation 적용
-
-도서 등록 시 제목과 저자는 필수값으로 검증되도록 설정하였다.
-
-```java
-@NotBlank
-private String title;
-
-@NotBlank
-private String author;
-```
-
-Controller에서는 `@Valid`를 적용하였다.
-
-```java
-@PostMapping("/books")
-public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
-    Book saved = bookService.create(book);
-    return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-}
-```
-
----
-
-### 전역 예외 처리
-
-`@RestControllerAdvice`를 사용하여 Controller 예외를 일관성 있게 처리하였다.
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-}
-```
-
----
-
-### 404 예외 처리
-
-도서를 찾을 수 없는 경우 404 응답을 반환한다.
-
-```java
-@ExceptionHandler(BookNotFoundException.class)
-public ResponseEntity<Map<String, String>> handleNotFound(BookNotFoundException e) {
-    Map<String, String> body = Map.of(
-            "error", "Book not found",
-            "message", e.getMessage()
-    );
-
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-}
-```
-
----
-
-### 400 예외 처리
-
-입력값 검증 실패 시 400 응답을 반환한다.
-
-```java
-@ExceptionHandler(MethodArgumentNotValidException.class)
-public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException e) {
-    String msg = e.getBindingResult().getFieldError().getDefaultMessage();
-
-    Map<String, String> body = Map.of(
-            "error", "Validation failed",
-            "message", msg
-    );
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-}
-```
-
----
-
-### Postman 검증 결과
-
-#### 존재하지 않는 도서 조회
-
-Request:
-
-```http
-GET /books/999999
-```
-
-Response:
-
-```json
-{
-  "error": "Book not found",
-  "message": "Book not found: id=999999"
-}
-```
-
-Status:
-
-```text
-404 Not Found
-```
-
----
-
-#### Validation 실패
-
-Request:
-
-```json
-{
-  "title": "",
-  "author": ""
-}
-```
-
-Response:
-
-```json
-{
-  "error": "Validation failed",
-  "message": "공백일 수 없습니다"
-}
-```
-
-Status:
-
-```text
-400 Bad Request
-```
-
----
-
-## Day 4 - AI 표지 생성 흐름 구현
-
-### AI 표지 저장 API 구현
-
-AI가 생성한 표지 이미지 URL과 태그를 도서 정보에 저장하기 위한 API를 구현하였다.
-
-```text
-PATCH /books/{id}/cover
-```
-
----
-
-### Backend 구현
-
-Controller에서 표지 저장 요청을 처리한다.
-
-```java
-@PatchMapping("/books/{id}/cover")
-public Book updateBookCover(
-        @PathVariable Long id,
-        @RequestBody CoverUpdateRequest request
-) {
-    return bookService.updateCover(id, request.coverImageUrl(), request.tags());
-}
-```
-
----
-
-### Service 구현
-
-도서 ID를 기준으로 기존 도서를 조회한 뒤, 표지 이미지 URL과 태그를 업데이트한다.
-
-```java
-@Transactional
-public Book updateCover(Long id, String coverImageUrl, List<String> tags) {
-    Book existing = findById(id);
-
-    existing.setCoverImageUrl(coverImageUrl);
-
-    if (tags != null) {
-        existing.setTags(tags);
-    }
-
-    existing.setUpdatedAt(LocalDateTime.now());
-
-    return bookRepository.save(existing);
-}
-```
-
----
-
-### Frontend 구현
-
-Frontend에서 AI 표지 생성 후 Backend 저장 API를 호출하도록 구현하였다.
-
-```javascript
-export const updateBookCover = async (id, coverImageUrl, tags) => {
-  const response = await fetch(`${BASE_URL}/${id}/cover`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      coverImageUrl,
-      tags,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('표지 이미지 저장 실패');
-  }
-
-  return await response.json();
-};
-```
-
----
-
-### AI 표지 생성 흐름
-
-```text
-React 화면에서 도서 정보 입력
-        ↓
-AI 표지 생성 버튼 클릭
-        ↓
-OpenAI Image API 호출
-        ↓
-생성된 표지 이미지 URL 반환
-        ↓
-React 화면에 표지 이미지 표시
-        ↓
-PATCH /books/{id}/cover 호출
-        ↓
-Spring Boot에서 coverImageUrl, tags 저장
-        ↓
-H2 Database 반영
-```
-
----
-
-### 검증 결과
-
-- AI 표지 생성 버튼 동작 확인
-- 생성된 표지 이미지 화면 표시 확인
-- 표지 이미지 URL 저장 확인
-- 태그 저장 확인
-- 도서 상세 화면에서 저장된 표지 확인
-- React → OpenAI → React → Backend 저장 흐름 확인
-
----
-
-## 최종 결과
-
-React Frontend와 Spring Boot Backend를 연동하여 도서 관리 및 AI 표지 생성 기능을 구현하였다.
-
-완료 기능:
-
-- 도서 전체 조회
-- 도서 상세 조회
-- 도서 등록
-- 도서 수정
-- 도서 삭제
-- 입력값 검증
-- 사용자 정의 예외 처리
-- 전역 예외 처리
-- AI 표지 생성
-- AI 표지 URL 저장
-- 태그 저장
-- React 화면 연동
-- Postman API 검증
-- H2 Database 저장 확인
+- `docs/images/tech-stack.png`
+- `docs/images/auth-screen.png`
+- `docs/images/book-list.png`
+- `docs/images/favorites-page.png`
+- `docs/images/supabase-schema-erd.png`
+- `docs/images/supabase-schema.svg`
