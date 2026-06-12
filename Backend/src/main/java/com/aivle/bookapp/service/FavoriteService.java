@@ -1,12 +1,9 @@
 package com.aivle.bookapp.service;
 
 import com.aivle.bookapp.domain.Book;
-import com.aivle.bookapp.domain.Favorite;
-import com.aivle.bookapp.domain.User;
 import com.aivle.bookapp.exception.BookNotFoundException;
 import com.aivle.bookapp.repository.BookRepository;
 import com.aivle.bookapp.repository.FavoriteRepository;
-import com.aivle.bookapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +16,6 @@ public class FavoriteService {
 
     private final FavoriteRepository favoriteRepository;
     private final BookRepository bookRepository;
-    private final UserRepository userRepository;
 
     /**
      *  [기능 1] 즐겨찾기 ID 목록 조회
@@ -48,14 +44,15 @@ public class FavoriteService {
     public void addFavorite(String userId, String email, Long bookId) {
         validateUserId(userId);
 
-        User user = findOrCreateUser(userId, email);
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException(bookId));
-
-        // 중복 등록 방지 체크
-        if (favoriteRepository.findByUserAndBook(user, book).isEmpty()) {
-            favoriteRepository.save(new Favorite(user, book));
+        if (!bookRepository.existsById(bookId)) {
+            throw new BookNotFoundException(bookId);
         }
+
+        // Supabase 로그인 유저를 우리 users 테이블에도 맞춰 둔다
+        favoriteRepository.upsertUser(userId, email);
+
+        // 이미 누른 하트면 조용히 넘어간다
+        favoriteRepository.insertFavoriteIfAbsent(userId, bookId);
     }
 
     /**
@@ -65,21 +62,11 @@ public class FavoriteService {
     public void removeFavorite(String userId, Long bookId) {
         validateUserId(userId);
 
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException(bookId));
+        if (!bookRepository.existsById(bookId)) {
+            throw new BookNotFoundException(bookId);
+        }
 
-        favoriteRepository.findByUserIdAndBookId(userId, book.getId())
-                .ifPresent(favoriteRepository::delete);
-    }
-
-    private User findOrCreateUser(String userId, String email) {
-        return userRepository.findById(userId)
-                .orElseGet(() -> {
-                    User user = new User();
-                    user.setId(userId);
-                    user.setEmail(email);
-                    return userRepository.save(user);
-                });
+        favoriteRepository.deleteByUserIdAndBookId(userId, bookId);
     }
 
     private void validateUserId(String userId) {

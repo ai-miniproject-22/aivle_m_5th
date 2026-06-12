@@ -4,6 +4,7 @@ import com.aivle.bookapp.domain.Book;
 import com.aivle.bookapp.domain.Favorite;
 import com.aivle.bookapp.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -31,4 +32,32 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
             @Param("userId") String userId,
             @Param("bookId") Long bookId
     );
+
+    @Modifying
+    @Query(value = """
+            INSERT INTO users (user_id, username, email)
+            VALUES (:userId, COALESCE(:email, :userId), :email)
+            ON CONFLICT (user_id) DO UPDATE
+            SET username = COALESCE(users.username, EXCLUDED.username),
+                email = COALESCE(EXCLUDED.email, users.email)
+            """, nativeQuery = true)
+    void upsertUser(@Param("userId") String userId, @Param("email") String email);
+
+    @Modifying
+    @Query(value = """
+            INSERT INTO favorite (id, user_id, book_id)
+            SELECT (SELECT COALESCE(MAX(id), 0) + 1 FROM favorite), :userId, :bookId
+            WHERE NOT EXISTS (
+                SELECT 1 FROM favorite
+                WHERE user_id = :userId AND book_id = :bookId
+            )
+            """, nativeQuery = true)
+    int insertFavoriteIfAbsent(@Param("userId") String userId, @Param("bookId") Long bookId);
+
+    @Modifying
+    @Query(value = """
+            DELETE FROM favorite
+            WHERE user_id = :userId AND book_id = :bookId
+            """, nativeQuery = true)
+    int deleteByUserIdAndBookId(@Param("userId") String userId, @Param("bookId") Long bookId);
 }
