@@ -19,4 +19,16 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     // 추가 요건: 유저가 찜한 책들의 ID만 리스트로 빠르게 가져오는 JPQL 쿼리
     @Query("SELECT f.book.id FROM Favorite f WHERE f.user = :user")
     List<Long> findBookIdsByUser(@Param("user") User user);
+
+    @Query("SELECT f.book.id FROM Favorite f WHERE f.user.id = :userId")
+    List<Long> findBookIdsByUserId(@Param("userId") String userId);
+
+    @Query("SELECT f.book FROM Favorite f WHERE f.user.id = :userId")
+    List<Book> findBooksByUserId(@Param("userId") String userId);
+
+    @Query("SELECT f FROM Favorite f WHERE f.user.id = :userId AND f.book.id = :bookId")
+    Optional<Favorite> findByUserIdAndBookId(
+            @Param("userId") String userId,
+            @Param("bookId") Long bookId
+    );
 }

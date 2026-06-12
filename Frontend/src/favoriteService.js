@@ -1,5 +1,8 @@
-const BOOK_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/books';
-const API_BASE_URL = BOOK_BASE_URL.replace(/\/books\/?$/, '');
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/books';
+const normalizedBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+const API_BASE_URL = normalizedBaseUrl.endsWith('/books')
+  ? normalizedBaseUrl.replace(/\/books$/, '')
+  : normalizedBaseUrl;
 
 // 공통 응답 체크
 const checkResponse = async (response, message) => {

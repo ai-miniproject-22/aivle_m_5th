@@ -28,9 +28,7 @@ public class FavoriteService {
     public List<Long> getFavoriteBookIds(String userId) {
         validateUserId(userId);
 
-        return userRepository.findById(userId)
-                .map(favoriteRepository::findBookIdsByUser)
-                .orElse(List.of());
+        return favoriteRepository.findBookIdsByUserId(userId);
     }
 
     /**
@@ -40,12 +38,7 @@ public class FavoriteService {
     public List<Book> getFavoriteBooks(String userId) {
         validateUserId(userId);
 
-        return userRepository.findById(userId)
-                .map(user -> favoriteRepository.findByUser(user)
-                        .stream()
-                        .map(Favorite::getBook)
-                        .toList())
-                .orElse(List.of());
+        return favoriteRepository.findBooksByUserId(userId);
     }
 
     /**
@@ -72,15 +65,10 @@ public class FavoriteService {
     public void removeFavorite(String userId, Long bookId) {
         validateUserId(userId);
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return;
-        }
-
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
 
-        favoriteRepository.findByUserAndBook(user, book)
+        favoriteRepository.findByUserIdAndBookId(userId, book.getId())
                 .ifPresent(favoriteRepository::delete);
     }
 
