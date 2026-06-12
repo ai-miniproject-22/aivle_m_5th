@@ -1,8 +1,9 @@
 import { AppBar, Toolbar, Typography, Button, ButtonBase } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
-function Header({ onAddClick, onLogoClick }) {
+function Header({ onAddClick, onLogoClick, onFavoritesClick }) {
   return (
     <AppBar
       position="static"
@@ -29,6 +30,14 @@ function Header({ onAddClick, onLogoClick }) {
             BookShelf
           </Typography>
         </ButtonBase>
+        <Button
+          variant="outlined"
+          startIcon={<FavoriteIcon />}
+          onClick={onFavoritesClick}
+          sx={{ mr: 1 }}
+        >
+          즐겨찾기
+        </Button>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

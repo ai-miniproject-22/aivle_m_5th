@@ -21,7 +21,7 @@ import { getBooks } from '../bookService';
 import { getBookPreferences } from '../preferenceService';
 import { getPersonalizedRecommendations } from '../recommendationService';
 
-function BookListPage({ onAddClick, onBookClick, onLogoClick }) {
+function BookListPage({ onAddClick, onBookClick, onLogoClick, onFavoritesClick, favoriteIds = [], onToggleFavorite }) {
   const [books, setBooks] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
@@ -76,7 +76,7 @@ function BookListPage({ onAddClick, onBookClick, onLogoClick }) {
   if (isLoading) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-        <Header onAddClick={onAddClick} onLogoClick={onLogoClick} />
+        <Header onAddClick={onAddClick} onLogoClick={onLogoClick} onFavoritesClick={onFavoritesClick} />
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 20, gap: 2 }}>
           <CircularProgress />
           <Typography variant="body1" color="text.secondary">도서 목록을 불러오는 중입니다...</Typography>
@@ -88,7 +88,7 @@ function BookListPage({ onAddClick, onBookClick, onLogoClick }) {
   if (error) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-        <Header onAddClick={onAddClick} onLogoClick={onLogoClick} />
+        <Header onAddClick={onAddClick} onLogoClick={onLogoClick} onFavoritesClick={onFavoritesClick} />
         <Container maxWidth="lg" sx={{ py: 10, textAlign: 'center' }}>
           <Box sx={{ py: 6, border: '1px dashed', borderColor: 'error.light', borderRadius: 1, bgcolor: 'error.50' }}>
             <Typography variant="h6" color="error" sx={{ fontWeight: 700, mb: 1 }}>불러오기 실패</Typography>
@@ -101,7 +101,7 @@ function BookListPage({ onAddClick, onBookClick, onLogoClick }) {
 
   return (
     <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh' }}>
-      <Header onAddClick={onAddClick} onLogoClick={onLogoClick} />
+      <Header onAddClick={onAddClick} onLogoClick={onLogoClick} onFavoritesClick={onFavoritesClick} />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {personalizedBooks.length > 0 && (
@@ -118,7 +118,12 @@ function BookListPage({ onAddClick, onBookClick, onLogoClick }) {
             <Grid container spacing={4} rowSpacing={5}>
               {personalizedBooks.map((book) => (
                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={book.id}>
-                  <BookCard book={book} onClick={() => onBookClick?.(book.id)} />
+                  <BookCard
+                    book={book}
+                    onClick={() => onBookClick?.(book.id)}
+                    isFavorite={favoriteIds.includes(Number(book.id))}
+                    onToggleFavorite={onToggleFavorite}
+                  />
                 </Grid>
               ))}
             </Grid>
@@ -227,7 +232,12 @@ function BookListPage({ onAddClick, onBookClick, onLogoClick }) {
           <Grid container spacing={4} rowSpacing={5}>
             {filteredBooks.map((book) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={book.id}>
-                <BookCard book={book} onClick={() => onBookClick?.(book.id)} />
+                <BookCard
+                  book={book}
+                  onClick={() => onBookClick?.(book.id)}
+                  isFavorite={favoriteIds.includes(Number(book.id))}
+                  onToggleFavorite={onToggleFavorite}
+                />
               </Grid>
             ))}
           </Grid>
